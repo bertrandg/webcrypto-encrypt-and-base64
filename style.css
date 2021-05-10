@@ -22,6 +22,15 @@ button {
   height: 30px;
 }
 
+#encrypted,
+#decrypted {
+  border: 1px solid black;
+  padding: 5px;
+  margin: 5px 0;
+  max-height: 600px;
+  overflow: auto;
+}
+
 div.block {
   display: inline-block;
   width: 20%;
@@ -31,10 +40,12 @@ div.block {
 
 div.success {
   border: 1px solid green;
+  background: rgba(0, 128, 0, 0.199);
 }
 
 div.error {
   border: 1px solid red;
+  background: rgba(255, 0, 0, 0.253);
 }
 
 pre {
