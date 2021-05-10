@@ -1,10 +1,9 @@
 // Import stylesheets
 import './style.css';
 
-(document.getElementById('source') as any).value = 'Whatever text >>> zazezkdjfhz$:;,;êgrre !!!!';
+const nbTests = 20;
 
-const iv = getRandomBytes(8);
-(document.getElementById('iv') as any).value = iv.string;
+(document.getElementById('source') as any).value = 'Whatever text >>> zazezkdjfhz$:;,;êgrre !!!!';
 
 generateAesKey().then(key => {
   (document.getElementById('key') as any).value = key.keyString;
@@ -16,14 +15,41 @@ document.getElementById('btnDecrypt').addEventListener('click', () => decrypt())
 function encrypt() {
   const sourceStr = (document.getElementById('source') as any).value;
   const keyStr = (document.getElementById('key') as any).value;
-  const ivStr = (document.getElementById('iv') as any).value;
+  const ivs = Array(nbTests).fill('').map(() => getRandomBytes(8));
 
-  importRawKey(keyStr, ['encrypt']).then(key => {
-    
+  importRawKey(keyStr, ['encrypt']).then(key => Promise.allSettled(
+    Array(nbTests).fill('').map((x, i) => encryptWithAesKey(key, sourceStr, ivs[i].string))
+  )).then(results => {
+    console.log('encryptWithAesKey 10 times > ', results);
+    (document.getElementById('encrypted') as any).innerHTML = results.map((r, i) => `
+      <div id="encrypted-${i}" class="block ${ (r.status === 'fulfilled') ? 'success' : 'error' }">
+        ${r.status} : 
+        <pre class="enc">${ r['value'] ? r['value'].string : 'nope' }</pre>
+        <pre class="iv">${ ivs[i].string }</pre>
+      </div>`).join('');
   });
+
+  (document.getElementById('decrypted') as any).innerHTML = '';
 }
 
 function decrypt() {
+  const keyStr = (document.getElementById('key') as any).value;
+
+  importRawKey(keyStr, ['decrypt']).then(key => Promise.allSettled(
+    Array(nbTests).fill('').map((x, i) => {
+      const encryptedStr = (document.querySelector(`#encrypted-${i} .enc`) as HTMLElement).textContent;
+      const ivStr = (document.querySelector(`#encrypted-${i} .iv`) as HTMLElement).textContent;
+      console.log('decrypt > ', encryptedStr, ' > ', ivStr);
+      return decryptWithAesKey(key, encryptedStr, ivStr);
+    })
+  )).then(results => {
+    console.log('decryptWithAesKey 10 times > ', results);
+    (document.getElementById('decrypted') as any).innerHTML = results.map((r, i) => `
+      <div id="decrypted-${i}" class="block ${ (r.status === 'fulfilled') ? 'success' : 'error' }">
+        ${r.status} : 
+        <pre class="enc">${ r['value'] ? r['value'].string : 'nope' }</pre>
+      </div>`).join('');
+  });
 
 }
 
@@ -80,12 +106,21 @@ function base64ToBytes(base64: string): Uint8Array {
 
 ///////////////////////////////////////
 
-export function encryptWithAesKey(key: CryptoKey, plaintextBytes: Uint8Array, ivBytes: Uint8Array): Promise<Uint8Array> {
+export function encryptWithAesKey(key: CryptoKey, sourceString: string, ivString: string): Promise<{bytes: Uint8Array, string: string}> {
+  console.log('encryptWithAesKey > ', sourceString);
+  const plaintextBytes: Uint8Array = (new TextEncoder()).encode(sourceString);
+  const ivBytes: Uint8Array = base64ToBytes(ivString);
+
   return (window.crypto.subtle.encrypt({name: 'AES-GCM', iv: ivBytes}, key, plaintextBytes) as Promise<Uint8Array>)
-    .then(cypherBytes => new Uint8Array(cypherBytes));
+    .then(cypherBytes => new Uint8Array(cypherBytes))
+    .then(cypherBytes => ({bytes: cypherBytes, string: bytesToBase64(cypherBytes)}));
 }
 
-export function decryptWithAesKey(key: CryptoKey, cypherBytes: Uint8Array, ivBytes: Uint8Array): Promise<Uint8Array> {
+export function decryptWithAesKey(key: CryptoKey, cypherString: string, ivString: string): Promise<{bytes: Uint8Array, string: string}> {
+  const cypherBytes: Uint8Array = base64ToBytes(cypherString);
+  const ivBytes: Uint8Array = base64ToBytes(ivString);
+
   return (window.crypto.subtle.decrypt({name: 'AES-GCM', iv: ivBytes}, key, cypherBytes) as Promise<ArrayBuffer>)
-    .then(plaintextBytes => new Uint8Array(plaintextBytes));
+    .then(plaintextBytes => new Uint8Array(plaintextBytes))
+    .then(plaintextBytes => ({bytes: plaintextBytes, string: (new TextDecoder('utf-8')).decode(plaintextBytes)}));
 }

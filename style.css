@@ -21,3 +21,25 @@ button {
   width: 100%;
   height: 30px;
 }
+
+div.block {
+  display: inline-block;
+  width: 20%;
+  padding: 5px;
+  margin-bottom: 5px;
+}
+
+div.success {
+  border: 1px solid green;
+}
+
+div.error {
+  border: 1px solid red;
+}
+
+pre {
+  margin: 0;
+  font-size: 9px;
+  background: rgba(0, 174, 255, 0.096);
+  overflow: auto;
+}
