@@ -1,8 +1,7 @@
 // Import stylesheets
 import './style.css';
 
-const nbTests = 20;
-
+(document.getElementById('nb') as any).value = 25;
 (document.getElementById('source') as any).value = 'Whatever text >>> zazezkdjfhz$:;,;êgrre !!!!';
 
 generateAesKey().then(key => {
@@ -13,6 +12,7 @@ document.getElementById('btnEncrypt').addEventListener('click', () => encrypt())
 document.getElementById('btnDecrypt').addEventListener('click', () => decrypt());
 
 function encrypt() {
+  const nbTests = Number((document.getElementById('nb') as any).value);
   const sourceStr = (document.getElementById('source') as any).value;
   const keyStr = (document.getElementById('key') as any).value;
   const ivs = Array(nbTests).fill('').map(() => getRandomBytes(8));
@@ -33,6 +33,7 @@ function encrypt() {
 }
 
 function decrypt() {
+  const nbTests = Number((document.getElementById('nb') as any).value);
   const keyStr = (document.getElementById('key') as any).value;
 
   importRawKey(keyStr, ['decrypt']).then(key => Promise.allSettled(
