@@ -2,10 +2,11 @@
 import './style.css';
 
 (document.getElementById('nb') as any).value = 25;
-(document.getElementById('source') as any).value = 'Whatever text >>> zazezkdjfhz$:;,;êgrre !!!!';
+(document.getElementById('source') as any).value = `<//*=>🥭 Mango 🍎 Red Apple 🍏 Green Apple 🍐 Pear 🍑 Peach 🍒 Cherries 🍓 Strawberry é""'(§è!çà654`;
 
 generateAesKey().then(key => {
-  (document.getElementById('key') as any).value = key.keyString;
+  // (document.getElementById('key') as any).value = key.keyString;
+  (document.getElementById('key') as any).value = 'wBWWHcLJZS3ZW9v+5enY6zIxGA+6FjwDkpF+XeEb/I8=';
 });
 
 document.getElementById('btnEncrypt').addEventListener('click', () => encrypt());
@@ -15,7 +16,7 @@ function encrypt() {
   const nbTests = Number((document.getElementById('nb') as any).value);
   const sourceStr = (document.getElementById('source') as any).value;
   const keyStr = (document.getElementById('key') as any).value;
-  const ivs = Array(nbTests).fill('').map(() => getRandomBytes(8));
+  const ivs = Array(nbTests).fill('').map(() => getRandomBytes(16));
 
   importRawKey(keyStr, ['encrypt']).then(key => Promise.allSettled(
     Array(nbTests).fill('').map((x, i) => encryptWithAesKey(key, sourceStr, ivs[i].string))
